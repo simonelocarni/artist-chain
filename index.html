@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101211">
+  <title>Artist Chain — Il gioco delle collaborazioni</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brand-mark">A</span><span>ARTIST<span class="muted">CHAIN</span></span></a>
+      <span class="top-note">THE MUSIC CONNECTION GAME</span>
+    </header>
+
+    <section id="home" class="screen">
+      <div class="intro">
+        <div class="eyebrow"><span class="pulse"></span> UN GIOCO DI CONNESSIONI MUSICALI</div>
+        <h1>Un artista.<br><em>Un altro artista.</em><br>Quanto lontano arrivi?</h1>
+        <p class="lead">Collega musicisti attraverso gli album a cui hanno partecipato. A ogni turno la catena si allunga. Chi non trova il prossimo nome è fuori.</p>
+      </div>
+
+      <div class="setup-grid">
+        <article class="panel setup-panel">
+          <div class="panel-kicker">01 / NUOVA PARTITA</div>
+          <label for="mode">Modalità di gioco</label>
+          <div class="mode-switch">
+            <button class="mode-btn selected" data-mode="local">Stesso dispositivo</button>
+            <button class="mode-btn" data-mode="online">Online</button>
+          </div>
+
+          <div id="local-options">
+            <label for="player-names">Nomi dei giocatori <small>Uno per riga</small></label>
+            <textarea id="player-names" rows="4" placeholder="Simone&#10;Giulia&#10;Marco">Giocatore 1
+Giocatore 2</textarea>
+            <p class="hint">Minimo 2 giocatori. Il dispositivo passerà al giocatore successivo a ogni turno.</p>
+          </div>
+
+          <div id="online-options" class="hidden">
+            <label for="nickname">Il tuo nome</label>
+            <input id="nickname" maxlength="24" placeholder="Come ti chiami?">
+            <div class="online-actions">
+              <button id="create-room" class="button secondary">Crea una stanza</button>
+              <div class="or">oppure</div>
+              <label for="room-code">Codice della stanza</label>
+              <div class="join-row">
+                <input id="room-code" maxlength="8" placeholder="CODICE">
+                <button id="join-room" class="button secondary">Entra</button>
+              </div>
+            </div>
+            <p class="hint">La modalità online richiede la configurazione gratuita di Supabase (vedi README).</p>
+          </div>
+          <button id="start-local" class="button primary full">Inizia la partita <span>↗</span></button>
+        </article>
+
+        <aside class="rules-card">
+          <div class="panel-kicker">02 / COME SI GIOCA</div>
+          <div class="rule"><b>01</b><div><strong>Si parte da un nome</strong><p>Il primo giocatore sceglie un artista.</p></div></div>
+          <div class="rule"><b>02</b><div><strong>Trova il collegamento</strong><p>Il successivo nomina un artista presente in almeno un album con il precedente.</p></div></div>
+          <div class="rule"><b>03</b><div><strong>Nessuna ripetizione</strong><p>Non puoi riutilizzare un artista già comparso nella catena.</p></div></div>
+          <div class="rule"><b>04</b><div><strong>Chi sbaglia è fuori</strong><p>Se il collegamento non è verificabile, perdi il turno e la partita.</p></div></div>
+          <div class="sources"><span>VERIFICA</span><span class="source-pill">MUSICBRAINZ</span><span class="source-pill">WIKIPEDIA</span></div>
+        </aside>
+      </div>
+      <footer>UN GIOCO PER CHI ASCOLTA DAVVERO.</footer>
+    </section>
+
+    <section id="game" class="screen hidden">
+      <div class="game-head">
+        <div><div class="eyebrow">PARTITA IN CORSO</div><h2>La catena <em>continua.</em></h2></div>
+        <button id="quit-game" class="text-button">Esci dalla partita ×</button>
+      </div>
+      <div class="game-layout">
+        <section class="panel play-panel">
+          <div class="turn-line"><span class="live-dot"></span><span id="turn-label">TURNO DI GIOCO</span><span id="turn-number" class="turn-count">01</span></div>
+          <div class="current-box">
+            <div class="panel-kicker">ARTISTA DA COLLEGARE</div>
+            <div id="current-artist" class="current-artist">—</div>
+            <div id="current-caption" class="current-caption">Trova un altro artista che compaia in un album insieme a questo.</div>
+          </div>
+          <form id="answer-form">
+            <label for="artist-answer">Il tuo artista</label>
+            <div class="answer-row"><input id="artist-answer" autocomplete="off" placeholder="Scrivi il nome…" required><button id="submit-answer" class="button primary">Verifica <span>↗</span></button></div>
+          </form>
+          <div id="feedback" class="feedback hidden" aria-live="polite"></div>
+          <div id="evidence" class="evidence hidden"></div>
+          <div id="pass-device" class="pass-device hidden"><div class="panel-kicker">PASSA IL DISPOSITIVO</div><strong id="next-player-name"></strong><p>Quando è pronto, può iniziare il suo turno.</p><button id="ready-button" class="button primary full">Sono pronto</button></div>
+          <div class="chain-wrap"><div class="panel-kicker">LA CATENA · <span id="chain-length">0</span> ARTISTI</div><ol id="chain-list" class="chain-list"></ol></div>
+        </section>
+        <aside class="panel side-panel">
+          <div class="panel-kicker">GIOCATORI</div><div id="scoreboard" class="scoreboard"></div>
+          <div class="side-divider"></div>
+          <div class="panel-kicker">REGOLA DEL TURNO</div><p class="side-copy">Il collegamento deve essere documentato da un album condiviso. Le compilation e i crediti come ospite sono validi se presenti nei dati discografici.</p>
+          <div class="side-divider"></div>
+          <div class="panel-kicker">FONTI</div>
+          <p class="side-copy">MusicBrainz è la fonte principale per i crediti discografici. Wikipedia è usata come riscontro aggiuntivo quando disponibile.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="result" class="screen hidden">
+      <div class="result-card panel">
+        <div class="eyebrow">FINE DELLA PARTITA</div>
+        <div class="result-symbol">✳</div>
+        <h2 id="result-title">Abbiamo un vincitore.</h2>
+        <p id="result-description" class="lead"></p>
+        <div id="final-score" class="final-score"></div>
+        <button id="new-game" class="button primary">Nuova partita ↗</button>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
