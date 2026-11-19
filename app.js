@@ -314,7 +314,7 @@ async function submitAnswer() {
 
   try {
     const result = await verifyConnection(previous, candidate);
-alert("RISPOSTA SUPABASE: " + JSON.stringify(result));
+prompt("COPIA TUTTO IL RISULTATO E INCOLLALO QUI IN CHAT:", JSON.stringify(result, null, 2));
 state.lastEvidence = result;
     state.lastEvidence = result;
 
