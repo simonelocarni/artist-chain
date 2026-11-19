@@ -314,7 +314,8 @@ async function submitAnswer() {
 
   try {
     const result = await verifyConnection(previous, candidate);
-
+alert("RISPOSTA SUPABASE: " + JSON.stringify(result));
+state.lastEvidence = result;
     state.lastEvidence = result;
 
     if (result.status === "verified") {
