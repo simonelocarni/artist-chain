@@ -314,7 +314,27 @@ async function submitAnswer() {
 
   try {
     const result = await verifyConnection(previous, candidate);
-prompt("COPIA TUTTO IL RISULTATO E INCOLLALO QUI IN CHAT:", JSON.stringify(result, null, 2));
+const debugBox = document.createElement("textarea");
+debugBox.value = "RISPOSTA SUPABASE:\n" + JSON.stringify(result, null, 2);
+
+Object.assign(debugBox.style, {
+  position: "fixed",
+  zIndex: "999999",
+  top: "20px",
+  left: "20px",
+  width: "calc(100vw - 60px)",
+  height: "70vh",
+  background: "white",
+  color: "black",
+  padding: "15px",
+  fontSize: "14px",
+  border: "3px solid lime",
+  borderRadius: "8px"
+});
+
+document.body.appendChild(debugBox);
+debugBox.focus();
+debugBox.select();
 state.lastEvidence = result;
     state.lastEvidence = result;
 
