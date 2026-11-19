@@ -339,7 +339,11 @@ async function submitAnswer() {
 
       showEvidence(result);
 
-    } else if (result.status === "rejected" || result.status === "not_found") {
+    } else if (
+  result.status === "rejected" ||
+  result.status === "not_found" ||
+  /nessuna collaborazione trovata/i.test(result.message || "")
+) {
       eliminateCurrent(
         `Non è stato trovato un collegamento documentato tra ${previous} e ${candidate}.`
       );
